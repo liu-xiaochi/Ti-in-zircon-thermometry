@@ -1,0 +1,1411 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>锆石 Ti 含量温度计 · Ti-in-zircon thermometry</title>
+<style>
+  :root{
+    --bg:#f4f6f8; --panel:#fff; --line:#d8dee6; --ink:#1d2733; --muted:#69788c;
+    --brand:#2f6fb3; --brand2:#4a7ebb; --warn:#b3541e; --ok:#2e7d4f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font:14px/1.5 "Microsoft YaHei UI","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+    color:var(--ink); background:var(--bg); display:flex; flex-direction:column;
+  }
+  header{
+    display:flex; align-items:center; gap:14px; padding:10px 16px;
+    background:var(--panel); border-bottom:1px solid var(--line);
+  }
+  header h1{font-size:19px; margin:0; font-weight:600; letter-spacing:.5px}
+  header .en{color:var(--muted); font-size:13px}
+  header .sp{flex:1}
+  button{
+    font:inherit; padding:6px 14px; border:1px solid var(--line); border-radius:6px;
+    background:#fff; cursor:pointer; color:var(--ink);
+  }
+  button:hover{background:#eef3f9; border-color:#b9c9dc}
+  button.primary{background:var(--brand); border-color:var(--brand); color:#fff}
+  button.primary:hover{background:#265d97}
+  button:disabled{opacity:.5; cursor:default}
+  .layout{flex:1; display:flex; min-height:0; gap:10px; padding:10px}
+  aside{width:286px; flex:0 0 286px; display:flex; flex-direction:column; gap:10px; overflow:auto}
+  fieldset{
+    border:1px solid var(--line); border-radius:8px; background:var(--panel);
+    margin:0; padding:8px 10px 10px;
+  }
+  legend{font-size:12px; color:var(--muted); padding:0 6px}
+  .grid2{display:grid; grid-template-columns:1fr 74px 74px; gap:4px 6px; align-items:center}
+  .grid2 .h{font-size:12px; color:var(--muted); text-align:right}
+  input[type=text]{
+    width:100%; font:inherit; padding:3px 6px; border:1px solid var(--line);
+    border-radius:5px; background:#fff; color:var(--ink); min-width:0;
+  }
+  input[type=text]:focus{outline:2px solid #bcd6f2; outline-offset:-1px; border-color:#8fb8de}
+  .num{text-align:right}
+  label.chk{display:flex; align-items:center; gap:6px; padding:3px 0; font-size:13px; cursor:pointer}
+  .muted{color:var(--muted); font-size:12px}
+  main{flex:1; min-width:0; min-height:0; display:grid;
+       grid-template-rows:minmax(0,1fr) minmax(0,1.35fr); gap:10px}
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    display:flex; flex-direction:column; min-height:0;
+  }
+  .card > .bar{
+    display:flex; align-items:center; gap:8px; padding:7px 10px; border-bottom:1px solid var(--line);
+    flex-wrap:wrap;
+  }
+  .card > .bar .t{font-size:13px; font-weight:600; margin-right:4px}
+  .scroll{overflow:auto; min-height:0; flex:1 1 auto; min-height:96px}
+  table{border-collapse:collapse; width:100%; font-size:13px}
+  th,td{border-bottom:1px solid #eceff3; padding:0}
+  th{
+    position:sticky; top:0; z-index:1; background:#eef3f9; font-weight:600; font-size:12px;
+    color:#33465c; text-align:center; padding:6px 4px; border-bottom:1px solid var(--line);
+    white-space:nowrap;
+  }
+  td input{border:0; border-radius:0; padding:4px 6px; background:transparent}
+  td input:focus{outline:2px solid #bcd6f2; outline-offset:-2px; background:#fff}
+  tbody tr:nth-child(even) td{background:#fafbfd}
+  tbody tr.sel td{background:#e8f1fb}
+  #outTable td{padding:3px 6px; text-align:center; white-space:nowrap; font-size:12.5px}
+  #outTable td:first-child, #outTable td:nth-child(2){text-align:left}
+  #statTable td{padding:4px 6px}
+  #statTable td:first-child{text-align:left}
+  #statTable td{text-align:center}
+  .histbar{display:flex; align-items:center; gap:10px; padding:6px 10px; flex-wrap:wrap}
+  canvas{width:100%; height:100%; display:block; background:#fff; flex:1 1 auto; min-height:110px}
+  .bottom{display:flex; min-height:0; border-top:1px solid var(--line); flex:0 0 auto; height:212px}
+  .hwrap{flex:1 1 auto; min-width:0; display:flex; flex-direction:column}
+  .swrap{flex:0 0 430px; display:flex; flex-direction:column; min-height:0; border-left:1px solid var(--line)}
+  .swrap .sc, .sc{white-space:nowrap} .swrap .sbar{font-size:12px; color:var(--muted); padding:7px 10px 3px}
+  .swrap .scroll{min-height:0}
+  .quick textarea{
+    width:100%; height:158px; font:12px/1.45 Consolas,"Courier New",monospace;
+    border:1px solid var(--line); border-radius:6px; padding:6px; resize:vertical; background:#fbfcfe;
+  }
+  .tag{font-size:12px; color:var(--muted)}
+  .status{
+    padding:5px 16px; font-size:12px; color:var(--muted); background:var(--panel);
+    border-top:1px solid var(--line);
+  }
+  .status b{color:var(--ink); font-weight:600}
+  .err{color:#b3261e}
+  dialog{
+    border:1px solid var(--line); border-radius:10px; padding:0; max-width:820px; width:92%;
+    box-shadow:0 10px 40px rgba(20,40,70,.2);
+  }
+  dialog .dbar{display:flex; align-items:center; padding:10px 14px; border-bottom:1px solid var(--line)}
+  dialog .dbar b{flex:1}
+  dialog pre{
+    margin:0; padding:14px 18px; font:12.5px/1.6 Consolas,"Microsoft YaHei UI",monospace;
+    white-space:pre-wrap; max-height:70vh; overflow:auto;
+  }
+  .hidden{display:none!important}
+  @media (max-width:900px){
+    .layout{flex-direction:column}
+    aside{width:auto; flex:0 0 auto}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>锆石 Ti 含量温度计</h1>
+  <span class="en">Ti-in-zircon thermometry</span>
+  <span class="sp"></span>
+  <button id="btnCalc" class="primary">计算</button>
+  <button id="btnCsv">导出 CSV</button>
+  <button id="btnXlsx">导出 Excel</button>
+  <button id="btnHelp">公式说明</button>
+</header>
+
+<div class="layout">
+  <aside>
+    <fieldset>
+      <legend>参数（表格留空的单元格用这里的值）</legend>
+      <div class="grid2">
+        <span class="h"></span><span class="h">值</span><span class="h">1σ</span>
+        <span>aSiO₂</span><input id="p_asio2" class="num" value="1"><input id="s_asio2" class="num" value="0">
+        <span>aTiO₂</span><input id="p_atio2" class="num" value="0.6"><input id="s_atio2" class="num" value="0">
+        <span>P (GPa)</span><input id="p_p" class="num" value="0"><input id="s_p" class="num" value="0">
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>模型</legend>
+      <div id="models"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>不确定度</legend>
+      <select id="unc" style="width:100%; font:inherit; padding:4px">
+        <option value="analytic">一阶误差传播（推荐）</option>
+        <option value="bounds">系数 ±1σ 上下限</option>
+        <option value="mc">蒙特卡洛模拟</option>
+        <option value="none">不计算</option>
+      </select>
+    </fieldset>
+
+    <fieldset class="quick">
+      <legend>单点速算</legend>
+      <div style="display:flex; gap:6px; align-items:center; margin-bottom:6px">
+        <span>Ti (ppm)</span>
+        <input id="q_ti" class="num" value="50" style="width:80px">
+        <button id="btnQuick" style="flex:1">算一下</button>
+      </div>
+      <textarea id="q_out" readonly></textarea>
+    </fieldset>
+  </aside>
+
+  <main>
+    <div class="card">
+      <div class="bar">
+        <span class="t">输入数据</span>
+        <button id="btnLoad">读入 CSV/TXT</button>
+        <input type="file" id="file" accept=".csv,.txt,.tsv" class="hidden">
+        <button id="btnAdd">添加行</button>
+        <button id="btnDel">删除行</button>
+        <button id="btnClear">清空</button>
+        <button id="btnDemo">示例数据</button>
+        <span class="tag">可直接从 Excel 复制整块 → 点表格单元格 → Ctrl+V 粘贴</span>
+      </div>
+      <div class="scroll" style="max-height:30vh">
+        <table id="inTable">
+          <thead>
+            <tr>
+              <th style="width:150px">样品</th>
+              <th style="width:110px">Ti (ppm)</th>
+              <th style="width:100px">1σ Ti</th>
+              <th style="width:100px">aSiO₂</th>
+              <th style="width:100px">aTiO₂</th>
+              <th style="width:100px">P (GPa)</th>
+            </tr>
+          </thead>
+          <tbody id="inBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="bar">
+        <span class="t">计算结果（单位 °C）</span>
+        <span class="tag" id="outTag"></span>
+      </div>
+      <div class="scroll" id="outScroll">
+        <table id="outTable">
+          <thead><tr id="outHead"></tr></thead>
+          <tbody id="outBody"><tr><td colspan="8" class="muted" style="padding:14px">点“计算”后在此显示结果</td></tr></tbody>
+        </table>
+      </div>
+      <div class="bottom">
+        <div class="hwrap">
+          <div class="histbar">
+            <span class="tag">直方图模型：</span>
+            <select id="histModel" style="font:inherit; padding:3px 6px"></select>
+            <span class="tag" id="histStat">—</span>
+          </div>
+          <canvas id="hist" width="900" height="170"></canvas>
+        </div>
+        <div class="swrap">
+          <div class="sbar">按模型统计（单位 °C）</div>
+          <div class="scroll">
+            <table id="statTable">
+              <thead>
+                <tr><th>模型</th><th>n</th><th>均值</th><th>1σ</th><th>最小</th><th>最大</th></tr>
+              </thead>
+              <tbody id="statBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="status" id="status">就绪：可从 Excel 复制数据后粘贴到表格</div>
+
+<dialog id="help">
+  <div class="dbar"><b>公式与说明</b><button id="btnHelpClose">关闭</button></div>
+  <pre id="helpText"></pre>
+</dialog>
+
+<script>
+"use strict";
+// ===================== CORE BEGIN =====================
+// 计算内核：与 Python 版 zircon_ti.py 一一对应（同一套公式、同一套误差传播）。
+// 这一段不依赖 DOM，便于单独测试。
+
+const LOG10 = Math.log10 ? Math.log10 : (x) => Math.log(x) / Math.LN10;
+
+function gauss(x) { return x; }
+
+// --- 模型定义 -------------------------------------------------------------
+// fn(Ti, aTiO2, aSiO2, P, c) -> T(K)
+const MODELS = {
+  WH2005: {
+    key: "WH2005", label: "Watson & Harrison (2005)", short: "WH05",
+    reference: "Watson & Harrison (2005) Geology 33, 357-360",
+    coef: { A: 5080, B: 6.01 }, coefSigma: { A: 30, B: 0.03 },
+    usesP: false, usesAsio2: false,
+    eq: "T(K) = 5080 / (6.01 - lg(Ti/aTiO2))",
+    note: "经典标定；只用到 aTiO2，不涉及 aSiO2 与压力。",
+    fn: (Ti, aTiO2, aSiO2, P, c) => c.A / (c.B - LOG10(Ti / aTiO2)),
+  },
+  FW2007: {
+    key: "FW2007", label: "Ferry & Watson (2007)", short: "FW07",
+    reference: "Ferry & Watson (2007) CMP 154, 529-540",
+    coef: { A: 4800, B: 5.711 }, coefSigma: { A: 86, B: 0.072 },
+    usesP: false, usesAsio2: true,
+    eq: "T(K) = 4800 / (5.711 - lg Ti + lg aTiO2 - lg aSiO2)",
+    note: "同时考虑 aTiO2 与 aSiO2（1 atm 标定，不含压力项）。",
+    fn: (Ti, aTiO2, aSiO2, P, c) =>
+      c.A / (c.B - LOG10(Ti) + LOG10(aTiO2) - LOG10(aSiO2)),
+  },
+  FW2007_P50: {
+    key: "FW2007_P50", label: "Ferry & Watson (2007) + 50(P-1) 压力校正", short: "FW07+50",
+    reference: "Ferry & Watson (2007); Crisp et al. (2023) GCA Eq.11",
+    coef: { A: 4800, B: 5.711, K: 50, P0: 1 }, coefSigma: { A: 86, B: 0.072, K: 0 },
+    usesP: true, usesAsio2: true,
+    eq: "T(K) = 4800 / (5.711 - lg Ti + lg aTiO2 - lg aSiO2) + 50*(P - 1)",
+    note: "Ferry & Watson (2007) 建议的压力校正形式，Crisp et al. (2023) 归纳为 Eq.11。",
+    fn: (Ti, aTiO2, aSiO2, P, c) =>
+      c.A / (c.B - LOG10(Ti) + LOG10(aTiO2) - LOG10(aSiO2)) + c.K * (P - c.P0),
+  },
+  FW2007_P100: {
+    key: "FW2007_P100", label: "Ferry & Watson (2007) + 100(P-1) 压力校正", short: "FW07+100",
+    reference: "Ferry & Watson (2007); Crisp et al. (2023) GCA Eq.12",
+    coef: { A: 4800, B: 5.711, K: 100, P0: 1 }, coefSigma: { A: 86, B: 0.072, K: 0 },
+    usesP: true, usesAsio2: true,
+    eq: "T(K) = 4800 / (5.711 - lg Ti + lg aTiO2 - lg aSiO2) + 100*(P - 1)",
+    note: "压力校正系数取 100 °C/GPa（Crisp et al., 2023 Eq.12）。",
+    fn: (Ti, aTiO2, aSiO2, P, c) =>
+      c.A / (c.B - LOG10(Ti) + LOG10(aTiO2) - LOG10(aSiO2)) + c.K * (P - c.P0),
+  },
+  CRISP2023: {
+    key: "CRISP2023", label: "Crisp et al. (2023) Eq.13", short: "Crisp23",
+    reference: "Crisp, Berry, Huang et al. (2023) GCA, Ti-in-zircon 新标定",
+    coef: { A: 4800, B: 5.84, c1: 0.12, c3: 0.0056, t0: 3.37, t1: 0.77 },
+    coefSigma: { A: 86, B: 0.07, c1: 0.01, c3: 0.0015, t0: 0.13, t1: 0.05 },
+    usesP: true, usesAsio2: true,
+    eq: "T(K) = 4800 / (5.84 - 0.12P - 0.0056P^3 - f*lg aSiO2 + lg aTiO2 - lg(Ti*f))\n       f = 1 / (1 + 10^(0.77P - 3.37))",
+    note: "实验标定的压力相关式，内含 f[4]Ti 项，适用于较宽压力范围。",
+    fn: (Ti, aTiO2, aSiO2, P, c) => {
+      const f = 1 / (1 + Math.pow(10, c.t1 * P - c.t0));
+      const x = c.B - c.c1 * P - c.c3 * Math.pow(P, 3)
+        - LOG10(aSiO2) * f + LOG10(aTiO2) - LOG10(Ti * f);
+      return c.A / x;
+    },
+  },
+};
+const MODEL_KEYS = Object.keys(MODELS);
+
+function f4ti(P) { return 1 / (1 + Math.pow(10, 0.77 * P - 3.37)); }
+
+function temperatureK(model, Ti, aTiO2, aSiO2, P, coef) {
+  const c = Object.assign({}, model.coef, coef || {});
+  return model.fn(Ti, aTiO2, aSiO2, P, c);
+}
+
+function checkInputs(Ti, aTiO2, aSiO2, P) {
+  if (!(Ti > 0) || !isFinite(Ti)) throw new Error("Ti 含量必须为正数（ppm），当前为 " + Ti);
+  if (!(aTiO2 > 0 && aTiO2 <= 1.0000001)) throw new Error("aTiO2 必须落在 (0, 1] 区间，当前为 " + aTiO2);
+  if (!(aSiO2 > 0 && aSiO2 <= 1.0000001)) throw new Error("aSiO2 必须落在 (0, 1] 区间，当前为 " + aSiO2);
+  if (!isFinite(P) || !(P > -0.5 && P < 30)) throw new Error("压力 P 应为 0–30 GPa 之间，当前为 " + P);
+}
+
+// --- 一阶误差传播 ---------------------------------------------------------
+const INPUT_KEYS = ["Ti", "aTiO2", "aSiO2", "P"];
+
+function partial(model, name, inp, coef, relStep) {
+  relStep = relStep || 1e-5;
+  const run = (val) => temperatureK(model,
+    name === "Ti" ? val : inp.Ti,
+    name === "aTiO2" ? val : inp.aTiO2,
+    name === "aSiO2" ? val : inp.aSiO2,
+    name === "P" ? val : inp.P, coef);
+
+  if (INPUT_KEYS.indexOf(name) >= 0) {
+    const v = inp[name];
+    const h = (v ? Math.abs(v) * relStep : relStep);
+    return (run(v + h) - run(v - h)) / (2 * h);
+  }
+  const v = coef[name];
+  const h = (v ? Math.abs(v) * relStep : 1e-6);
+  const hi = Object.assign({}, coef); hi[name] = v + h;
+  const lo = Object.assign({}, coef); lo[name] = v - h;
+  const base = [inp.Ti, inp.aTiO2, inp.aSiO2, inp.P];
+  return (model.fn(base[0], base[1], base[2], base[3], normalizeCoef(model, hi))
+    - model.fn(base[0], base[1], base[2], base[3], normalizeCoef(model, lo))) / (2 * h);
+}
+
+function normalizeCoef(model, c) { return Object.assign({}, model.coef, c); }
+
+function analyticSigma(model, inp) {
+  const c = Object.assign({}, model.coef);
+  let varr = 0;
+  const sig = { Ti: inp.Ti_sigma || 0, aTiO2: inp.aTiO2_sigma || 0, aSiO2: inp.aSiO2_sigma || 0, P: inp.P_sigma || 0 };
+  for (const name of INPUT_KEYS) {
+    const s = sig[name];
+    if (!s) continue;
+    if (name === "P" && !model.usesP) continue;
+    if (name === "aSiO2" && !model.usesAsio2) continue;
+    const d = partial(model, name, inp, c);
+    varr += Math.pow(d * s, 2);
+  }
+  for (const name of Object.keys(model.coefSigma)) {
+    const s = model.coefSigma[name];
+    if (!s) continue;
+    const d = partial(model, name, inp, c);
+    varr += Math.pow(d * s, 2);
+  }
+  return Math.sqrt(varr);
+}
+
+// --- 系数 ±1σ 上下限 ------------------------------------------------------
+function bounds(model, inp) {
+  const c = Object.assign({}, model.coef);
+  const lo = Object.assign({}, c), hi = Object.assign({}, c);
+  for (const name of Object.keys(model.coefSigma)) {
+    const s = model.coefSigma[name];
+    if (!s) continue;
+    const h = (c[name] ? Math.abs(c[name]) * 1e-5 : 1e-6);
+    const hiC = Object.assign({}, c); hiC[name] = c[name] + h;
+    const loC = Object.assign({}, c); loC[name] = c[name] - h;
+    const d = model.fn(inp.Ti, inp.aTiO2, inp.aSiO2, inp.P, hiC)
+      - model.fn(inp.Ti, inp.aTiO2, inp.aSiO2, inp.P, loC);
+    if (d > 0) { lo[name] = c[name] - s; hi[name] = c[name] + s; }
+    else { lo[name] = c[name] + s; hi[name] = c[name] - s; }
+  }
+  const t1 = model.fn(inp.Ti, inp.aTiO2, inp.aSiO2, inp.P, lo);
+  const t2 = model.fn(inp.Ti, inp.aTiO2, inp.aSiO2, inp.P, hi);
+  return [Math.min(t1, t2), Math.max(t1, t2)];
+}
+
+// --- 蒙特卡洛 -------------------------------------------------------------
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function monteCarlo(model, inp, n, seed) {
+  n = n || 20000; seed = seed || 20240101;
+  const rnd = mulberry32(seed);
+  let spare = null;
+  const norm = () => {
+    if (spare !== null) { const v = spare; spare = null; return v; }
+    let u = 0, v = 0;
+    while (u === 0) u = rnd();
+    while (v === 0) v = rnd();
+    const r = Math.sqrt(-2 * Math.log(u));
+    spare = r * Math.sin(2 * Math.PI * v);
+    return r * Math.cos(2 * Math.PI * v);
+  };
+
+  const ti = inp.Ti;
+  const srel = (inp.Ti_sigma > 0) ? inp.Ti_sigma / ti : 0;
+  const mu = Math.log(ti) - 0.5 * Math.log1p(srel * srel);
+  const sg = Math.sqrt(Math.log1p(srel * srel));
+
+  const _act = (v, s) => {
+    const out = new Float64Array(n);
+    if (!(s > 0)) { out.fill(v); return out; }
+    for (let i = 0; i < n; i++) out[i] = v + s * norm();
+    for (let it = 0; it < 200; it++) {
+      let bad = false;
+      for (let i = 0; i < n; i++) {
+        if (out[i] < 1e-3 || out[i] > 1) {
+          bad = true;
+          out[i] = v + s * norm();
+        }
+      }
+      if (!bad) break;
+    }
+    for (let i = 0; i < n; i++) out[i] = Math.min(1, Math.max(1e-3, out[i]));
+    return out;
+  };
+
+  const smpTi = new Float64Array(n);
+  for (let i = 0; i < n; i++) smpTi[i] = (srel > 0) ? Math.exp(mu + sg * norm()) : ti;
+  const smpATi = _act(inp.aTiO2, inp.aTiO2_sigma || 0);
+  const smpASi = _act(inp.aSiO2, inp.aSiO2_sigma || 0);
+  const smpP = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    smpP[i] = (inp.P_sigma > 0 && model.usesP) ? inp.P + inp.P_sigma * norm() : inp.P;
+  }
+  const cc = {};
+  for (const name of Object.keys(model.coef)) {
+    const s = model.coefSigma[name] || 0;
+    if (s) {
+      const arr = new Float64Array(n);
+      for (let i = 0; i < n; i++) arr[i] = model.coef[name] + s * norm();
+      cc[name] = arr;
+    } else {
+      const arr = new Float64Array(n); arr.fill(model.coef[name]);
+      cc[name] = arr;
+    }
+  }
+  const T = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    const c = {};
+    for (const name of Object.keys(cc)) c[name] = cc[name][i];
+    T[i] = model.fn(smpTi[i], smpATi[i], smpASi[i], smpP[i], c);
+  }
+  const good = Array.from(T).filter((v) => isFinite(v));
+  good.sort((a, b) => a - b);
+  const q = (p) => {
+    const idx = (good.length - 1) * p;
+    const lo = Math.floor(idx), hi = Math.ceil(idx);
+    return lo === hi ? good[lo] : good[lo] + (good[hi] - good[lo]) * (idx - lo);
+  };
+  const mean = good.reduce((a, b) => a + b, 0) / good.length;
+  let s2 = 0;
+  for (const v of good) s2 += (v - mean) * (v - mean);
+  const sd = Math.sqrt(s2 / (good.length - 1));
+  return {
+    mean, sd, n: good.length,
+    p2_5: q(0.025), p16: q(0.16), p50: q(0.5), p84: q(0.84), p97_5: q(0.975),
+  };
+}
+
+// --- 单个测点 -------------------------------------------------------------
+function computeOne(inp, models, uncertainty) {
+  checkInputs(inp.Ti, inp.aTiO2, inp.aSiO2, inp.P);
+  const out = {};
+  for (const key of models) {
+    const m = MODELS[key];
+    const T = temperatureK(m, inp.Ti, inp.aTiO2, inp.aSiO2, inp.P);
+    if (!isFinite(T) || T <= 0) throw new Error(key + ": 计算结果非物理（T=" + T + "）");
+    const r = { model: key, T_K: T, T_C: T - 273.15, sigma_K: NaN, lo_C: NaN, hi_C: NaN };
+    if (uncertainty === "analytic") {
+      r.sigma_K = analyticSigma(m, inp);
+    } else if (uncertainty === "bounds") {
+      const b = bounds(m, inp);
+      r.loC = b[0] - 273.15; r.hiC = b[1] - 273.15;
+      r.sigma_K = 0.5 * (b[1] - b[0]);
+    } else if (uncertainty === "mc") {
+      const st = monteCarlo(m, inp, 4000, 20240101);
+      r.sigma_K = st.sd;
+      r.loC = st.p2_5 - 273.15; r.hiC = st.p97_5 - 273.15;
+    }
+    out[key] = r;
+  }
+  return out;
+}
+
+// --- 表格解析 -------------------------------------------------------------
+const ALIASES = {
+  sample: ["sample", "sample id", "sampleid", "id", "name", "grain", "spot", "样品", "样品号", "样品编号", "编号", "点号", "分析点"],
+  Ti: ["ti", "ti ppm", "ti (ppm)", "ti_ppm", "tippm", "ti含量", "ti 含量", "ti(ppm)", "钛"],
+  Ti_sigma: ["ti 1s", "ti 1σ", "ti_sigma", "ti sd", "ti误差", "ti 误差", "s_ti", "σti"],
+  aTiO2: ["atio2", "a_tio2", "a tio2", "tio2活度", "tio2 活度", "a(tio2)", "αtio2"],
+  aTiO2_sigma: ["atio2 1s", "atio2_sigma", "atio2误差", "σatio2"],
+  aSiO2: ["asio2", "a_sio2", "a sio2", "sio2活度", "sio2 活度", "a(sio2)", "αsio2"],
+  aSiO2_sigma: ["asio2 1s", "asio2_sigma", "asio2误差", "σasio2"],
+  P: ["p", "p (gpa)", "p_gpa", "pgpa", "pressure", "压力", "p(gpa)", "压力(gpa)", "p gpa"],
+  P_sigma: ["p 1s", "p_sigma", "pressure 1s", "压力误差", "σp"],
+};
+
+function normName(s) {
+  return String(s || "").trim().toLowerCase()
+    .replace(/（/g, "(").replace(/）/g, ")").replace(/\u3000/g, " ");
+}
+
+function matchColumn(name) {
+  const n = normName(name), n2 = n.replace(/\s+/g, "");
+  for (const canon in ALIASES) {
+    for (const a of ALIASES[canon]) {
+      if (n === a || n2 === a.replace(/\s+/g, "")) return canon;
+    }
+  }
+  for (const canon in ALIASES) {
+    for (const a of ALIASES[canon]) {
+      const aa = a.replace(/\s+/g, "");
+      if (aa && aa.length >= 2 && n2.indexOf(aa) >= 0) return canon;
+    }
+  }
+  return null;
+}
+
+function splitLines(text) {
+  return text.replace(/\r\n?/g, "\n").split("\n");
+}
+
+function detectDelim(text) {
+  const head = text.split("\n").slice(0, 5).join("\n");
+  const tabs = (head.match(/\t/g) || []).length;
+  const commas = (head.match(/,/g) || []).length;
+  const semis = (head.match(/;/g) || []).length;
+  if (tabs >= commas && tabs >= semis) return "\t";
+  if (semis > commas) return ";";
+  return ",";
+}
+
+// 简单的 CSV/TSV 解析（支持双引号包裹）
+function parseDelimited(text, delim) {
+  const rows = [];
+  let row = [], cell = "", inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQ) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { cell += '"'; i++; }
+        else inQ = false;
+      } else cell += ch;
+    } else if (ch === '"') inQ = true;
+    else if (ch === delim) { row.push(cell); cell = ""; }
+    else if (ch === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+    else if (ch === "\r") { /* skip */ }
+    else cell += ch;
+  }
+  if (cell.length || row.length) { row.push(cell); rows.push(row); }
+  return rows;
+}
+
+// 把文本块转成 {rows, meta}；自动在前 40 行里找表头
+function tableFromText(text, delim) {
+  delim = delim || detectDelim(text);
+  const matrix = parseDelimited(text, delim);
+  let headerIdx = -1, mapping = null;
+  for (let i = 0; i < Math.min(matrix.length, 40); i++) {
+    const m = {};
+    for (let j = 0; j < matrix[i].length; j++) {
+      const canon = matchColumn(matrix[i][j]);
+      if (canon && !(canon in m)) m[canon] = j;
+    }
+    if (("Ti" in m) && Object.keys(m).length >= 1) { headerIdx = i; mapping = m; break; }
+  }
+  if (headerIdx < 0) return { rows: [], meta: { header_row: 0, mapping: {} } };
+  const out = [];
+  for (let i = headerIdx + 1; i < matrix.length; i++) {
+    const r = matrix[i];
+    const rec = {};
+    let empty = true;
+    for (const canon in mapping) {
+      const raw = r[mapping[canon]];
+      if (raw === undefined || String(raw).trim() === "") continue;
+      if (canon === "sample") {          // 样品名是文本，原样保留
+        rec.sample = String(raw).trim();
+        empty = false;
+        continue;
+      }
+      const v = Number(String(raw).replace(/[,\s]/g, ""));
+      if (!isFinite(v)) continue;
+      rec[canon] = v;
+      empty = false;
+    }
+    if (empty || !("Ti" in rec)) continue;
+    out.push(rec);
+  }
+  return { rows: out, meta: { header_row: headerIdx + 1, mapping } };
+}
+// --- 极简 xlsx 写出（store 方式，无压缩；不依赖任何库） ---
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+
+function crc32(u8) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+function zipStore(entries) {
+  const enc = new TextEncoder();
+  const parts = [];
+  const central = [];
+  let offset = 0;
+  const dosTime = 0, dosDate = 0x21; // 1980-01-01 00:00
+  for (const e of entries) {
+    const nameB = enc.encode(e.name);
+    const data = e.data;
+    const crc = crc32(data);
+    const size = data.length;
+
+    const lh = new Uint8Array(30 + nameB.length);
+    const dv = new DataView(lh.buffer);
+    dv.setUint32(0, 0x04034b50, true);
+    dv.setUint16(4, 20, true);
+    dv.setUint16(6, 0, true);
+    dv.setUint16(8, 0, true);
+    dv.setUint16(10, dosTime, true);
+    dv.setUint16(12, dosDate, true);
+    dv.setUint32(14, crc, true);
+    dv.setUint32(18, size, true);
+    dv.setUint32(22, size, true);
+    dv.setUint16(26, nameB.length, true);
+    dv.setUint16(28, 0, true);
+    lh.set(nameB, 30);
+    parts.push(lh, data);
+
+    const ch = new Uint8Array(46 + nameB.length);
+    const cv = new DataView(ch.buffer);
+    cv.setUint32(0, 0x02014b50, true);
+    cv.setUint16(4, 20, true);
+    cv.setUint16(6, 20, true);
+    cv.setUint16(8, 0, true);
+    cv.setUint16(10, 0, true);
+    cv.setUint16(12, dosTime, true);
+    cv.setUint16(14, dosDate, true);
+    cv.setUint32(16, crc, true);
+    cv.setUint32(20, size, true);
+    cv.setUint32(24, size, true);
+    cv.setUint16(28, nameB.length, true);
+    cv.setUint16(30, 0, true);
+    cv.setUint16(32, 0, true);
+    cv.setUint16(34, 0, true);
+    cv.setUint16(36, 0, true);
+    cv.setUint32(38, 0, true);
+    cv.setUint32(42, offset, true);
+    ch.set(nameB, 46);
+    central.push(ch);
+
+    offset += lh.length + size;
+  }
+  const cdSize = central.reduce((a, b) => a + b.length, 0);
+  const eocd = new Uint8Array(22);
+  const ev = new DataView(eocd.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(4, 0, true);
+  ev.setUint16(6, 0, true);
+  ev.setUint16(8, entries.length, true);
+  ev.setUint16(10, entries.length, true);
+  ev.setUint32(12, cdSize, true);
+  ev.setUint32(16, offset, true);
+  ev.setUint16(20, 0, true);
+
+  const all = parts.concat(central, [eocd]);
+  const total = all.reduce((a, b) => a + b.length, 0);
+  const out = new Uint8Array(total);
+  let p = 0;
+  for (const chunk of all) { out.set(chunk, p); p += chunk.length; }
+  return out;
+}
+
+function colName(i) {
+  let s = "";
+  i += 1;
+  while (i > 0) {
+    const m = (i - 1) % 26;
+    s = String.fromCharCode(65 + m) + s;
+    i = Math.floor((i - 1) / 26);
+  }
+  return s;
+}
+
+function xmlEsc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+}
+
+function sheetXml(head, rows) {
+  const enc = new TextEncoder();
+  let out = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    '<sheetData>';
+  const all = [head].concat(rows);
+  for (let r = 0; r < all.length; r++) {
+    out += '<row r="' + (r + 1) + '">';
+    for (let c = 0; c < all[r].length; c++) {
+      const v = all[r][c];
+      const ref = colName(c) + (r + 1);
+      if (v === null || v === undefined || v === "") continue;
+      if (typeof v === "number" && isFinite(v)) {
+        out += '<c r="' + ref + '"><v>' + v + "</v></c>";
+      } else {
+        out += '<c r="' + ref + '" t="inlineStr"><is><t xml:space="preserve">' +
+          xmlEsc(v) + "</t></is></c>";
+      }
+    }
+    out += "</row>";
+  }
+  out += "</sheetData></worksheet>";
+  return enc.encode(out);
+}
+
+function textSheetXml(lines) {
+  const rows = lines.map((ln) => [ln]);
+  return sheetXml(["锆石 Ti 含量温度计"], rows);
+}
+// 把若干工作表 {name, xml:Uint8Array} 打包成 .xlsx（返回 Uint8Array）
+function buildXlsx(sheets) {
+const enc = new TextEncoder();
+const contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+  '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+  '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+  '<Default Extension="xml" ContentType="application/xml"/>' +
+  '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+  sheets.map((s, i) => '<Override PartName="/xl/worksheets/sheet' + (i + 1) +
+    '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join("") +
+  "</Types>";
+
+const rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+  '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+  '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+  "</Relationships>";
+
+const workbook = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+  '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
+  'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>' +
+  sheets.map((s, i) => '<sheet name="' + xmlEsc(s.name) + '" sheetId="' + (i + 1) +
+    '" r:id="rId' + (i + 1) + '"/>').join("") +
+  "</sheets></workbook>";
+
+const wbRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+  '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+  sheets.map((s, i) => '<Relationship Id="rId' + (i + 1) +
+    '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" ' +
+    'Target="worksheets/sheet' + (i + 1) + '.xml"/>').join("") +
+  "</Relationships>";
+
+const entries = [
+  { name: "[Content_Types].xml", data: enc.encode(contentTypes) },
+  { name: "_rels/.rels", data: enc.encode(rels) },
+  { name: "xl/workbook.xml", data: enc.encode(workbook) },
+  { name: "xl/_rels/workbook.xml.rels", data: enc.encode(wbRels) },
+];
+sheets.forEach((s, i) => {
+  entries.push({ name: "xl/worksheets/sheet" + (i + 1) + ".xml", data: s.xml });
+});
+
+return zipStore(entries);
+}
+
+// ===================== CORE END =====================
+</script>
+
+<script>
+"use strict";
+// ===================== UI =====================
+
+const $ = (id) => document.getElementById(id);
+const COLS = ["sample", "Ti", "Ti_sigma", "aSiO2", "aTiO2", "P"];
+const HEAD = { sample: "样品", Ti: "Ti (ppm)", Ti_sigma: "1σ Ti", aSiO2: "aSiO₂", aTiO2: "aTiO₂", P: "P (GPa)" };
+
+const state = {
+  rows: [],            // 每行: {sample, Ti, Ti_sigma, aSiO2, aTiO2, P} 字符串
+  results: null,       // {models:[...], rows:[[...]], stats:[...]}
+  sel: -1,
+  histModel: "FW2007",
+};
+
+// ---------- 小工具 ----------
+function fmt(v, nd) {
+  if (v === null || v === undefined || (typeof v === "number" && !isFinite(v))) return "—";
+  return Number(v).toFixed(nd === undefined ? 1 : nd);
+}
+function numOr(s, dv) {
+  s = String(s === undefined || s === null ? "" : s).trim();
+  if (!s) return dv;
+  const v = Number(s.replace(/[,\s]/g, ""));
+  return isFinite(v) ? v : dv;
+}
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+function status(msg, isErr) {
+  const el = $("status");
+  el.innerHTML = isErr ? '<span class="err">' + esc(msg) + "</span>" : esc(msg);
+}
+
+// ---------- 参数默认值 ----------
+function defaults() {
+  return {
+    aSiO2: numOr($("p_asio2").value, 1),
+    aTiO2: numOr($("p_atio2").value, 1),
+    P: numOr($("p_p").value, 0),
+    aSiO2_sigma: numOr($("s_asio2").value, 0),
+    aTiO2_sigma: numOr($("s_atio2").value, 0),
+    P_sigma: numOr($("s_p").value, 0),
+  };
+}
+
+function rowToInput(r, d) {
+  return {
+    Ti: numOr(r.Ti, NaN),
+    aTiO2: numOr(r.aTiO2, d.aTiO2),
+    aSiO2: numOr(r.aSiO2, d.aSiO2),
+    P: numOr(r.P, d.P),
+    Ti_sigma: numOr(r.Ti_sigma, 0),
+    aTiO2_sigma: d.aTiO2_sigma,
+    aSiO2_sigma: d.aSiO2_sigma,
+    P_sigma: d.P_sigma,
+  };
+}
+
+// ---------- 模型勾选 ----------
+function buildModelChecks() {
+  const box = $("models");
+  box.innerHTML = "";
+  for (const key of MODEL_KEYS) {
+    const id = "m_" + key;
+    const lab = document.createElement("label");
+    lab.className = "chk";
+    lab.innerHTML = '<input type="checkbox" id="' + id + '" checked> <span>' +
+      esc(MODELS[key].label) + "</span>";
+    box.appendChild(lab);
+  }
+}
+function selectedModels() {
+  return MODEL_KEYS.filter((k) => $("m_" + k) && $("m_" + k).checked);
+}
+
+// ---------- 输入表格 ----------
+function blankRow() {
+  return { sample: "", Ti: "", Ti_sigma: "", aSiO2: "", aTiO2: "", P: "" };
+}
+
+function renderInput() {
+  const body = $("inBody");
+  const d = defaults();
+  body.innerHTML = "";
+  state.rows.forEach((r, i) => {
+    const tr = document.createElement("tr");
+    if (i === state.sel) tr.className = "sel";
+    COLS.forEach((c, j) => {
+      const td = document.createElement("td");
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.value = r[c] === undefined ? "" : r[c];
+      inp.dataset.r = i; inp.dataset.c = c;
+      if (c !== "sample") {
+        inp.className = "num";
+        if (c !== "Ti") inp.placeholder = String(d[c]);   // 留空 = 用左侧参数
+      }
+      inp.addEventListener("input", (e) => {
+        state.rows[+e.target.dataset.r][c] = e.target.value;
+      });
+      inp.addEventListener("focus", () => {
+        state.sel = +inp.dataset.r;
+        [...body.children].forEach((t, k) => t.classList.toggle("sel", k === state.sel));
+      });
+      td.appendChild(inp);
+      tr.appendChild(td);
+    });
+    tr.addEventListener("click", () => {
+      state.sel = i;
+      [...body.children].forEach((t, k) => t.classList.toggle("sel", k === i));
+    });
+    body.appendChild(tr);
+  });
+}
+
+function addRow(n) {
+  for (let i = 0; i < (n || 1); i++) state.rows.push(blankRow());
+  renderInput();
+}
+
+function delRow() {
+  if (state.sel < 0 || state.sel >= state.rows.length) {
+    status("请先点一下要删除的那一行", true);
+    return;
+  }
+  state.rows.splice(state.sel, 1);
+  state.sel = Math.min(state.sel, state.rows.length - 1);
+  renderInput();
+}
+
+function clearRows() {
+  state.rows = [];
+  state.sel = -1;
+  state.results = null;
+  renderInput();
+  clearResults();
+  status("已清空输入");
+}
+
+// ---------- 粘贴 ----------
+function pasteAt(target, text) {
+  if (!target || target.tagName !== "INPUT") { status("请先点一个单元格，再粘贴", true); return; }
+  const r0 = +target.dataset.r;
+  const c0 = target.dataset.c;
+  const colIdx = COLS.indexOf(c0);
+  const rows = parseDelimited(text.replace(/\r\n?/g, "\n").replace(/\n+$/, ""), "\t");
+  if (!rows.length) return;
+
+  // 若粘贴块第一行看起来是表头（含 Ti 字样且非数字），则按列名映射
+  const first = rows[0].map((s) => String(s).trim());
+  const looksHeader = first.some((s) => matchColumn(s) === "Ti") &&
+    !isFinite(Number(first[0].replace(/[,\s]/g, "")));
+
+  let startRow = r0, startCol = colIdx, mapping = null;
+  if (looksHeader && rows.length > 1) {
+    mapping = {};
+    for (let j = 0; j < first.length; j++) {
+      const canon = matchColumn(first[j]);
+      if (canon && !(canon in mapping)) mapping[canon] = j;
+    }
+    rows.shift();
+  }
+
+  for (let i = 0; i < rows.length; i++) {
+    const tr = startRow + i;
+    while (state.rows.length <= tr) state.rows.push(blankRow());
+    const cells = rows[i];
+    if (mapping) {
+      for (const canon in mapping) {
+        const v = cells[mapping[canon]];
+        if (v !== undefined && String(v).trim() !== "") state.rows[tr][canon] = String(v).trim();
+      }
+    } else {
+      for (let j = 0; j < cells.length; j++) {
+        const ci = startCol + j;
+        if (ci >= COLS.length) break;
+        const v = cells[j];
+        if (v !== undefined && String(v).trim() !== "") state.rows[tr][COLS[ci]] = String(v).trim();
+      }
+    }
+  }
+  renderInput();
+  status("已粘贴 " + rows.length + " 行");
+}
+
+document.addEventListener("paste", (e) => {
+  const t = e.target;
+  if (!t || t.tagName !== "INPUT" || !t.closest || !t.closest("#inBody")) return;
+  const text = (e.clipboardData || window.clipboardData).getData("text/plain");
+  if (!text) return;
+  e.preventDefault();
+  pasteAt(t, text);
+});
+
+// ---------- 计算 ----------
+function clearResults() {
+  $("outBody").innerHTML = '<tr><td colspan="8" class="muted" style="padding:14px">点“计算”后在此显示结果</td></tr>';
+  $("outHead").innerHTML = "";
+  $("statBody").innerHTML = "";
+  $("outTag").textContent = "";
+  $("histStat").textContent = "—";
+  drawHistogram();
+}
+
+function compute() {
+  const models = selectedModels();
+  if (!models.length) { status("请至少勾选一个模型", true); return; }
+  if (!state.rows.length) { status("请先输入或粘贴数据", true); return; }
+
+  const d = defaults();
+  const unc = $("unc").value;
+  const errs = [];
+  const results = [];
+  const parsed = [];
+
+  state.rows.forEach((r, i) => {
+    if (String(r.Ti || "").trim() === "") return;
+    const inp = rowToInput(r, d);
+    const name = String(r.sample || "").trim() || ("#" + (i + 1));
+    try {
+      const res = computeOne(inp, models, unc);
+      results.push({ name, Ti: r.Ti, res });
+      parsed.push({ name, inp });
+    } catch (err) {
+      errs.push(name + ": " + err.message);
+      results.push({ name, Ti: r.Ti, error: err.message });
+    }
+  });
+
+  if (!results.length) { status("没有可计算的有效数据（Ti 为空或不是数字）", true); return; }
+  state.results = { models, rows: results, parsed, unc };
+  renderResults();
+  status("完成：" + parsed.length + " 个点，" + models.length + " 个模型，不确定度=" +
+    $("unc").selectedOptions[0].textContent + (errs.length ? "；" + errs.length + " 行出错（如 " + errs[0] + "）" : ""),
+    errs.length > 0 && parsed.length === 0);
+}
+
+function renderResults() {
+  const R = state.results;
+  const head = $("outHead");
+  head.innerHTML = "<th>样品</th><th>Ti</th>" +
+    R.models.map((k) => "<th>" + esc(MODELS[k].short) + "</th>").join("");
+
+  const body = $("outBody");
+  body.innerHTML = "";
+  R.rows.forEach((row) => {
+    const tr = document.createElement("tr");
+    const tds = ["<td>" + esc(row.name) + "</td>", "<td>" + esc(row.Ti) + "</td>"];
+    if (row.error) {
+      tds.push('<td colspan="' + R.models.length + '" class="err">' + esc(row.error) + "</td>");
+    } else {
+      for (const k of R.models) {
+        const r = row.res[k];
+        tds.push("<td>" + (isFinite(r.sigma_K) ? fmt(r.T_C) + "±" + r.sigma_K.toFixed(0) : fmt(r.T_C)) + "</td>");
+      }
+    }
+    tr.innerHTML = tds.join("");
+    body.appendChild(tr);
+  });
+
+  // 模型统计
+  const stats = R.models.map((k) => {
+    const vals = R.rows.filter((r) => !r.error).map((r) => r.res[k].T_C);
+    const n = vals.length;
+    const mean = vals.reduce((a, b) => a + b, 0) / n;
+    const sd = n > 1 ? Math.sqrt(vals.reduce((a, b) => a + (b - mean) * (b - mean), 0) / (n - 1)) : NaN;
+    return { k, n, mean, sd, min: Math.min(...vals), max: Math.max(...vals) };
+  });
+  R.stats = stats;
+  const sb = $("statBody");
+  sb.innerHTML = stats.map((s) =>
+    '<tr title="' + esc(MODELS[s.k].label) + '"><td class="sc">' + esc(MODELS[s.k].short) +
+    "</td><td>" + s.n +
+    "</td><td>" + fmt(s.mean) + "</td><td>" + fmt(s.sd) + "</td><td>" + fmt(s.min) +
+    "</td><td>" + fmt(s.max) + "</td></tr>").join("");
+
+  $("outTag").textContent = "右列格式：温度 ± 1σ";
+
+  // 直方图模型下拉
+  const sel = $("histModel");
+  sel.innerHTML = R.models.map((k) => '<option value="' + k + '">' + esc(MODELS[k].short) + "</option>").join("");
+  if (R.models.indexOf(state.histModel) < 0) state.histModel = R.models[0];
+  sel.value = state.histModel;
+
+  drawHistogram();
+}
+
+// ---------- 直方图 ----------
+function drawHistogram() {
+  const cv = $("hist");
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth || 900, h = cv.clientHeight || 150;
+  cv.width = Math.round(w * dpr);
+  cv.height = Math.round(h * dpr);
+  const g = cv.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, w, h);
+  g.fillStyle = "#fff";
+  g.fillRect(0, 0, w, h);
+
+  const R = state.results;
+  if (!R || !R.rows.length) {
+    g.fillStyle = "#9aa7b6";
+    g.font = '13px "Microsoft YaHei UI"';
+    g.textAlign = "center";
+    g.fillText("计算结果后在此显示温度分布", w / 2, h / 2);
+    return;
+  }
+  const k = R.models.indexOf(state.histModel) >= 0 ? state.histModel : R.models[0];
+  const temps = R.rows.filter((r) => !r.error).map((r) => r.res[k].T_C);
+  if (!temps.length) return;
+
+  let lo = Math.min(...temps), hi = Math.max(...temps);
+  if (hi - lo < 1e-9) { lo -= 10; hi += 10; }
+  const padL = 46, padR = 16, padT = 16, padB = 26;
+  const mean = temps.reduce((a, b) => a + b, 0) / temps.length;
+  const sd = temps.length > 1
+    ? Math.sqrt(temps.reduce((a, b) => a + (b - mean) * (b - mean), 0) / temps.length) : 0;
+  const nb = Math.min(28, Math.max(6, Math.floor(temps.length / 3) + 4));
+  const width = (hi - lo) / nb;
+  const bins = new Array(nb).fill(0);
+  for (const t of temps) {
+    const i = Math.min(nb - 1, Math.max(0, Math.floor((t - lo) / width)));
+    bins[i]++;
+  }
+  const mx = Math.max(...bins) || 1;
+
+  // 轴
+  g.strokeStyle = "#c3ccd6"; g.lineWidth = 1;
+  g.beginPath();
+  g.moveTo(padL, h - padB); g.lineTo(w - padR, h - padB);
+  g.moveTo(padL, padT); g.lineTo(padL, h - padB);
+  g.stroke();
+
+  const bw = (w - padL - padR) / nb;
+  bins.forEach((b, i) => {
+    if (!b) return;
+    const x0 = padL + i * bw + 1;
+    const x1 = padL + (i + 1) * bw - 1.5;
+    const y0 = h - padB - (h - padT - padB) * b / mx * 0.92;
+    const grd = g.createLinearGradient(0, y0, 0, h - padB);
+    grd.addColorStop(0, "#6fa0d4"); grd.addColorStop(1, "#3d6fa8");
+    g.fillStyle = grd;
+    g.fillRect(x0, y0, Math.max(1, x1 - x0), h - padB - y0);
+    g.fillStyle = "#2b3d52";
+    g.font = '11px Consolas,monospace';
+    g.textAlign = "center";
+    g.fillText(String(b), (x0 + x1) / 2, y0 - 5);
+  });
+
+  // 均值 / ±1σ
+  const xOf = (t) => padL + (t - lo) / (hi - lo) * (w - padL - padR);
+  g.strokeStyle = "#d9534f"; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(xOf(mean), padT); g.lineTo(xOf(mean), h - padB); g.stroke();
+  if (sd) {
+    g.setLineDash([4, 3]); g.lineWidth = 1.2;
+    for (const s of [-1, 1]) {
+      g.beginPath(); g.moveTo(xOf(mean + s * sd), padT); g.lineTo(xOf(mean + s * sd), h - padB); g.stroke();
+    }
+    g.setLineDash([]);
+  }
+  g.fillStyle = "#69788c";
+  g.font = '11px Consolas,monospace';
+  g.textAlign = "right";
+  g.fillText(String(mx), padL - 6, padT + 9);
+  g.textAlign = "left";
+  g.fillText(lo.toFixed(0), padL, h - 8);
+  g.textAlign = "right";
+  g.fillText(hi.toFixed(0) + " °C", w - padR, h - 8);
+
+  $("histStat").textContent = MODELS[k].short + ":  n=" + temps.length +
+    "  均值=" + fmt(mean) + " °C  1σ=" + fmt(sd) + "  2σ=" + fmt(2 * sd) +
+    "  范围 " + fmt(Math.min(...temps)) + "–" + fmt(Math.max(...temps)) + " °C";
+}
+
+// ---------- 单点速算 ----------
+function quick() {
+  const ti = numOr($("q_ti").value, NaN);
+  if (!isFinite(ti) || ti <= 0) { $("q_out").value = "请输入正的 Ti 含量（ppm）"; return; }
+  const d = defaults();
+  const inp = {
+    Ti: ti, aTiO2: d.aTiO2, aSiO2: d.aSiO2, P: d.P,
+    aTiO2_sigma: d.aTiO2_sigma, aSiO2_sigma: d.aSiO2_sigma, P_sigma: d.P_sigma,
+  };
+  const lines = ["Ti=" + ti + "  aSi=" + d.aSiO2 + "  aTi=" + d.aTiO2 + "  P=" + d.P, ""];
+  for (const k of MODEL_KEYS) {
+    try {
+      const r = computeOne(inp, [k], "analytic")[k];
+      let band = "";
+      try {
+        const b = bounds(MODELS[k], inp);
+        band = " [" + (b[0] - 273.15).toFixed(0) + "-" + (b[1] - 273.15).toFixed(0) + "]";
+      } catch (e) { /* ignore */ }
+      lines.push(MODELS[k].short.padEnd(8) + r.T_C.toFixed(0).padStart(4) +
+        "±" + (isFinite(r.sigma_K) ? r.sigma_K.toFixed(0).padStart(3) : "  -") + band);
+    } catch (err) {
+      lines.push(MODELS[k].short + " 错误");
+    }
+  }
+  $("q_out").value = lines.join("\n");
+}
+
+// ---------- 导出 ----------
+function resultTable() {
+  const R = state.results;
+  const head = ["样品", "Ti (ppm)", "aTiO2", "aSiO2", "P (GPa)"];
+  for (const k of R.models) head.push(MODELS[k].short + " T(°C)", MODELS[k].short + " 1σ(°C)");
+  const rows = [];
+  const d = defaults();
+  R.parsed.forEach(({ name, inp }, i) => {
+    const src = R.rows[i];
+    const row = [name, inp.Ti, inp.aTiO2, inp.aSiO2, inp.P];
+    for (const k of R.models) {
+      const r = src.res[k];
+      row.push(Number(r.T_C.toFixed(1)), isFinite(r.sigma_K) ? Number(r.sigma_K.toFixed(1)) : null);
+    }
+    rows.push(row);
+  });
+  return { head, rows };
+}
+
+function statTable() {
+  const R = state.results;
+  const head = ["模型", "n", "均值 T(°C)", "1σ(°C)", "最小(°C)", "最大(°C)"];
+  const rows = R.stats.map((s) => [
+    MODELS[s.k].label + "（" + MODELS[s.k].short + "）", s.n,
+    Number(s.mean.toFixed(1)), isFinite(s.sd) ? Number(s.sd.toFixed(1)) : "",
+    Number(s.min.toFixed(1)), Number(s.max.toFixed(1)),
+  ]);
+  return { head, rows };
+}
+
+function download(blob, name) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+function stamp() {
+  const d = new Date(), p = (n) => String(n).padStart(2, "0");
+  return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes());
+}
+
+function exportCsv() {
+  if (!state.results) { status("请先计算", true); return; }
+  const { head, rows } = resultTable();
+  const lines = [head].concat(rows).map((r) => r.map((v) => {
+    const s = (v === null || v === undefined) ? "" : String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }).join(","));
+  const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  download(blob, "锆石Ti温度计-" + stamp() + ".csv");
+  status("已导出 CSV");
+}
+
+function exportXlsx() {
+  if (!state.results) { status("请先计算", true); return; }
+  const res = resultTable();
+  const st = statTable();
+  const enc = new TextEncoder();
+
+  const sheets = [
+    { name: "结果", xml: sheetXml(res.head, res.rows) },
+    { name: "按模型统计", xml: sheetXml(st.head, st.rows) },
+  ];
+
+  const info = [
+    "输入文件：网页版（浏览器内计算）",
+    "模型：" + state.results.models.join(", "),
+    "测点数：" + state.results.parsed.length,
+    "不确定度：" + $("unc").selectedOptions[0].textContent,
+    "",
+    "公式：",
+  ];
+  for (const k of MODEL_KEYS) {
+    info.push(MODELS[k].label + "（" + MODELS[k].short + "）");
+    for (const ln of MODELS[k].eq.split("\n")) info.push("    " + ln);
+    info.push("    " + MODELS[k].reference);
+    info.push("");
+  }
+  info.push("使用提示：");
+  info.push("· T 由公式得开尔文温度后换算为 °C；Ti 单位为 ppm，P 为 GPa。");
+  info.push("· aSiO2：含石英（或近石英饱和）的酸性岩取 1；缺石英时须实测/估算。");
+  info.push("· aTiO2：有金红石取 1；无金红石时花岗质熔体常取 0.5–0.8（Hayden & Watson, 2007）。");
+  info.push("· 1σ 为一阶误差传播结果，计入 Ti、各活度、压力及标定系数的 1σ。");
+  sheets.push({ name: "说明", xml: textSheetXml(info) });
+
+  const zip = buildXlsx(sheets);
+  const blob = new Blob([zip], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  download(blob, "锆石Ti温度计-" + stamp() + ".xlsx");
+  status("已导出 Excel（" + sheets.length + " 个工作表）");
+}
+
+// ---------- 文件读入 ----------
+function loadFile(file) {
+  const fr = new FileReader();
+  fr.onload = () => {
+    const text = String(fr.result || "");
+    const t = tableFromText(text);
+    if (!t.rows.length) {
+      status("没能识别表头：需要至少一列是 Ti 含量（列名如 Ti、Ti (ppm)、Ti含量）", true);
+      return;
+    }
+    const map = t.meta.mapping;
+    state.rows = t.rows.map((r) => ({
+      sample: r.sample !== undefined ? String(r.sample) : "",
+      Ti: r.Ti !== undefined ? String(r.Ti) : "",
+      Ti_sigma: r.Ti_sigma !== undefined ? String(r.Ti_sigma) : "",
+      aSiO2: r.aSiO2 !== undefined ? String(r.aSiO2) : "",
+      aTiO2: r.aTiO2 !== undefined ? String(r.aTiO2) : "",
+      P: r.P !== undefined ? String(r.P) : "",
+    }));
+    renderInput();
+    state.results = null;
+    clearResults();
+    status("读入 " + state.rows.length + " 条记录（表头第 " + t.meta.header_row + " 行）");
+  };
+  fr.readAsText(file, "utf-8");
+}
+
+// ---------- 示例数据 ----------
+const DEMO = [
+  ["MGT8-01", 21.1, 2.1], ["MGT8-02", 30.8, 3.1], ["MGT8-03", 30.76, 3.1],
+  ["MGT8-04", 30.3, 3.0], ["MGT8-05", 18.15, 1.8], ["MGT8-06", 39.4, 3.9],
+  ["MGT8-07", 19.51, 2.0], ["MGT8-08", 21.54, 2.2], ["MGT8-09", 16.82, 1.7],
+  ["MGT8-10", 25.6, 2.6],
+];
+
+function loadDemo() {
+  state.rows = DEMO.map((d) => ({
+    sample: d[0], Ti: String(d[1]), Ti_sigma: String(d[2]), aSiO2: "", aTiO2: "", P: "",
+  }));
+  state.sel = -1;
+  renderInput();
+  compute();
+}
+
+// ---------- 帮助 ----------
+function helpText() {
+  let t = "锆石 Ti 含量温度计 —— 公式一览\n\n";
+  for (const k of MODEL_KEYS) {
+    const m = MODELS[k];
+    t += m.short.padEnd(9) + m.eq.split("\n")[0] + "\n";
+    const rest = m.eq.split("\n").slice(1);
+    for (const r of rest) t += "         " + r.trim() + "\n";
+    t += "         " + m.reference + "\n";
+  }
+  t += `
+T 单位 K，结果输出为 °C；Ti 为 ppm，P 为 GPa，a 为活度（0–1）。
+
+活度取值提示
+  · 含石英（或接近石英饱和）的酸性岩：aSiO2 ≈ 1
+  · 有金红石：aTiO2 = 1；无金红石：按 H&W 2007 估算，花岗质熔体常取 0.5–0.8
+  · 中基性岩、无共存的石英/金红石时必须实测或估算活度
+
+不确定度
+  · 一阶误差传播：同时计入 Ti 的 1σ、各活度 1σ、压力 1σ 及标定系数误差
+  · 系数 ±1σ：给出温度上下限（最保守）
+  · 蒙特卡洛：活度做截断正态，误差大时更可靠（给 2.5–97.5% 区间）
+
+使用
+  · 从 Excel 复制多行多列 → 点表格任一单元格 → Ctrl+V
+  · 也可“读入 CSV/TXT”；空单元格用左侧“参数”里的值
+  · 导出 Excel 为真实 .xlsx（结果 / 按模型统计 / 说明 三个表）
+
+参考文献
+  Watson & Harrison (2005) Geology 33:357–360
+  Ferry & Watson (2007) CMP 154:529–540
+  Zou et al. (2021) Geoscience Frontiers（附录 C）
+  Barboni et al. (2016) PNAS 113:13279–13284（数据集 S2）
+  Volante et al. (2020) CMP 175:52
+  Crisp, Berry, Huang et al. (2023) GCA（表 S14–S16）
+`;
+  return t;
+}
+
+// ---------- 绑定 ----------
+function init() {
+  buildModelChecks();
+  renderInput();
+  clearResults();
+  $("q_out").value = "";
+  quick();                       // 打开页面先给个单点速算示例
+
+  $("btnCalc").addEventListener("click", compute);
+  $("btnQuick").addEventListener("click", quick);
+  $("btnAdd").addEventListener("click", () => addRow(1));
+  $("btnDel").addEventListener("click", delRow);
+  $("btnClear").addEventListener("click", clearRows);
+  $("btnDemo").addEventListener("click", loadDemo);
+  $("btnCsv").addEventListener("click", exportCsv);
+  $("btnXlsx").addEventListener("click", exportXlsx);
+  $("btnLoad").addEventListener("click", () => $("file").click());
+  $("file").addEventListener("change", (e) => {
+    if (e.target.files && e.target.files[0]) loadFile(e.target.files[0]);
+    e.target.value = "";
+  });
+  $("histModel").addEventListener("change", (e) => {
+    state.histModel = e.target.value;
+    drawHistogram();
+  });
+  $("btnHelp").addEventListener("click", () => {
+    $("helpText").textContent = helpText();
+    $("help").showModal();
+  });
+  $("btnHelpClose").addEventListener("click", () => $("help").close());
+
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); compute(); }
+  });
+  window.addEventListener("resize", () => drawHistogram());
+  window.addEventListener("load", () => drawHistogram());
+}
+
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
